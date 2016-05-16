@@ -1,6 +1,8 @@
 """
  Snake game
  
+ Re-used a lot of code pieces from below website examples.
+
  Sample Python/Pygame Programs
  http://programarcadegames.com/
  
