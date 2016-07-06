@@ -10,6 +10,10 @@
  
 import pygame
 import random
+
+def food_gen(frame_size, block_size):
+    food_block = (random.randrange(1,(frame_size-1)//block_size)*block_size, random.randrange(1,(frame_size-1)//block_size)*block_size)
+    return food_block
  
 # Define some colors
 BLACK = (0, 0, 0)
@@ -20,7 +24,7 @@ RED = (255, 0, 0)
 pygame.init()
  
 # Set the height and width of the screen
-size = [400, 400]
+size = [200, 200]
 frame_width = 20 
 block_size = 10
 screen = pygame.display.set_mode(size)
@@ -34,8 +38,8 @@ done = False
 clock = pygame.time.Clock()
  
 # Starting position of the rectangle
-rect_x = 250
-rect_y = 50
+rect_x = size[0]//2
+rect_y = size[1]//2
  
 # Snake list
 snake = [(rect_x, rect_y)]
@@ -72,12 +76,13 @@ while not done:
             elif event.key == pygame.K_DOWN:
                 cur_dir = DOWN
  
-    if cnt == 0:
+    # --- Generate food block ---
+    if cnt == 0 or eaten == True:
         # Food block
-        food_block = (random.randrange(1,(size[0]-1)//block_size)*block_size, random.randrange(1,(size[0]-1)//block_size)*block_size)
+        food_block = food_gen(size[0], block_size)
         # Regenerate food block
         while food_block in snake:
-            food_block = (random.randrange(1,(size[0]-1)//block_size)*block_size, random.randrange(1,(size[0]-1)//block_size)*block_size)
+            food_block = food_gen(size[0], block_size)
         # Count reset
         cnt = 120
         eaten = False
@@ -92,12 +97,21 @@ while not done:
             new_block = (snake[0][0],snake[0][1]-block_size)
         elif cur_dir == DOWN:
             new_block = (snake[0][0],snake[0][1]+block_size)
-     
-        # Insert new block at the front of snake list
-        snake.insert(0,new_block)
-        if food_block != new_block:
-            snake.pop()
-    
+   
+        # Snake hit the walls, quit the loop
+        if new_block[1] > size[1]-frame_width+1 or new_block[1] < frame_width-block_size:
+            done = True
+        elif new_block[0] > size[0]-frame_width+1 or new_block[0] < frame_width-block_size:
+            done = True
+        # Hit snake body, game over.
+        elif new_block in snake[2:]:
+            done = True
+        else:
+            # Insert new block at the front of snake list
+            snake.insert(0,new_block)
+            if food_block != new_block:
+                snake.pop()
+
         # --- Drawing
         # Set the screen background
         screen.fill(BLACK)
@@ -118,7 +132,6 @@ while not done:
             pygame.draw.rect(screen, WHITE, [food_block[0], food_block[1], block_size, block_size])
             eaten = True
      
-    
         # Go ahead and update the screen with what we've drawn.
         pygame.display.flip()
 
@@ -127,16 +140,6 @@ while not done:
     # If set to low value, key input response feels slow!
     clock.tick(20)
     cnt-=1
-
-    if cnt % 3 == 0:
-        # Snake hit the walls, quit the loop
-        if new_block[1] > size[1]-block_size or new_block[1] < block_size:
-            break
-        if new_block[0] > size[0]-block_size or new_block[0] < block_size:
-            break
-        # Hit snake body, game over.
-        if new_block in snake[2:]:
-            break
 
 # Game over
 font = pygame.font.SysFont('Calibri',25, True, False)
